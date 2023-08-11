@@ -9,7 +9,9 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.close
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlin.random.Random
 import kotlin.test.Test
 
 class MyTest {
@@ -17,7 +19,7 @@ class MyTest {
     install(WebSockets)
     routing {
       webSocket("/") {
-        close(CloseReason(4242, "Bye"))
+        close(CloseReason(code = 4242, message = "Bye"))
       }
     }
   }
@@ -25,12 +27,13 @@ class MyTest {
   @Test
   fun test() = runTest {
     println("Hello, world!")
-    val server = embeddedServer(CIO, 8080) { webSocketServer() }.start(wait = false)
+    val port = Random.nextInt(10000, 20000)
+    val server = embeddedServer(CIO, port) { webSocketServer() }.start(wait = false)
 
     val client = HttpClient {
       install(io.ktor.client.plugins.websocket.WebSockets)
     }
-    client.webSocket("ws://localhost:8080"){
+    client.webSocket("ws://127.0.0.1:$port") {
       println("Connected")
       try {
         incoming.receive()
